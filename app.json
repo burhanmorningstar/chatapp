@@ -21,12 +21,13 @@
       "supportsTablet": true
     },
     "android": {
-      "minifyEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.geirenfare.chatapp"
+      "package": "com.geirenfare.chatapp",
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
+      "jsEngine": "jsc"
     },
     "web": {
       "favicon": "./assets/favicon.png"

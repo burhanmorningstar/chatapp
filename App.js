@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import ChatScreen from './screens/ChatScreen';
+import 'react-native-gesture-handler';
+import { registerRootComponent } from 'expo';
 
 const Stack = createStackNavigator();
 
@@ -37,3 +38,4 @@ export default function App() {
     </NavigationContainer>
   );
 }
+registerRootComponent(App);
