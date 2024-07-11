@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "chatapp",
+    "slug": "chatapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "extras": {
+        "firebaseConfig": {
+          "apiKey": "AIzaSyDTY24Qa_4CXsDgNy_AVBIkkagM685_xhM",
+          "authDomain": "gvg-9c596.firebaseapp.com"
+        }
+      }
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "minifyEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.geirenfare.chatapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "161f7017-74aa-4f69-8a62-2ed35a531ff9"
+      }
+    }
+  }
+}
