@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -24,7 +24,7 @@ export default function LoginScreen({ navigation }) {
       await signInWithEmailAndPassword(auth, email, password);
       navigation.navigate('Home');
     } catch (error) {
-      Alert.alert('Lütfen Tekrar Deneyin', 'Giriş yapılırken bir hata oluştu.');
+      Alert.alert('Lütfen Tekrar Deneyin', error.message);
     } finally {
       setLoading(false);
     }
@@ -56,9 +56,13 @@ export default function LoginScreen({ navigation }) {
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        <Button title="Giriş Yap" onPress={handleLogin} />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Giriş Yap</Text>
+        </TouchableOpacity>
       )}
-      <Button title="Kayıt Ol" onPress={() => navigation.navigate('Register')} />
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.buttonText}>Kayıt Ol</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -68,18 +72,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 16,
+    backgroundColor: '#F8EDEB',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
+    color: '#6D597A',
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: '#B5838D',
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: '#FFDDD2',
+  },
+  button: {
+    backgroundColor: '#E5989B',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
-

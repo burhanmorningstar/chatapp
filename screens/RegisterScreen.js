@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { auth, firestore } from '../firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
@@ -40,6 +40,7 @@ const RegisterScreen = ({ navigation }) => {
         email: email,
         username: username,
         uid: userCredential.user.uid,
+        conversations: []
       });
 
       Alert.alert('Başarı', 'Kullanıcı başarıyla kaydedildi.');
@@ -85,11 +86,12 @@ const RegisterScreen = ({ navigation }) => {
         <View style={[styles.checkbox, acceptedTerms && styles.checked]} />
         <Text style={styles.termsText}>Kullanım şartlarını kabul ediyorum</Text>
       </TouchableOpacity>
-      <Button
-        title={loading ? 'Yükleniyor...' : 'Kaydol'}
-        onPress={handleRegister}
-        disabled={loading}
-      />
+      <TouchableOpacity onPress={() => navigation.navigate('Terms')}>
+        <Text style={styles.link}>Kullanım Şartlarını Oku</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Yükleniyor...' : 'Kaydol'}</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -99,18 +101,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 16,
+    backgroundColor: '#F8EDEB',
   },
   header: {
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
+    color: '#6D597A',
   },
   input: {
     height: 40,
-    borderColor: '#ddd',
+    borderColor: '#B5838D',
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: '#FFDDD2',
   },
   termsContainer: {
     flexDirection: 'row',
@@ -129,6 +135,23 @@ const styles = StyleSheet.create({
   },
   termsText: {
     flex: 1,
+    color: '#6D597A',
+  },
+  link: {
+    color: '#007AFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#E5989B',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
 

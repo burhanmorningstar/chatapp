@@ -5,13 +5,13 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
-  Button,
+  TouchableOpacity,
 } from "react-native";
-import { auth, firestore } from "../firebase"; // firestore'u doğru şekilde import edin
-import { collection, onSnapshot, query, where } from "firebase/firestore"; // Firestore fonksiyonlarını import edin
+import { auth, firestore } from "../firebase";
+import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, doc } from "firebase/firestore";
 
 const HomeScreen = ({ navigation }) => {
-  const [users, setUsers] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const currentUser = auth.currentUser;
@@ -19,53 +19,96 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Fetch users from Firebase on mount
-    const q = query(
-      collection(firestore, "users"),
-      where("uid", "!=", currentUser.uid) // id yerine uid kullanın
-    );
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const fetchedUsers = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUsers(fetchedUsers);
-        setFilteredUsers(fetchedUsers); // Initially set filteredUsers to all users
-      },
-      (error) => {
-        console.error("Error fetching users:", error); // Handle errors
-      }
-    );
+    // Daha önce mesajlaştığınız kişileri çekmek için Firestore'da sorgu oluşturun
+    const chatsRef = collection(firestore, "chats");
+    const q = query(chatsRef, where("users", "array-contains", currentUser.uid), orderBy("lastMessage.timestamp", "desc"));
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const fetchedConversations = await Promise.all(
+        snapshot.docs.map(async (docSnapshot) => {
+          const data = docSnapshot.data();
+          const otherUserId = data.users.find((uid) => uid !== currentUser.uid);
+          const otherUserDoc = await getDoc(doc(firestore, "users", otherUserId));
+          const otherUserData = otherUserDoc.exists() ? otherUserDoc.data() : {};
+
+          // Görülmemiş mesajları hesapla
+          const unseenMessages = await getUnseenMessagesCount(docSnapshot.id);
+
+          return {
+            id: docSnapshot.id,
+            ...data,
+            otherUser: {
+              uid: otherUserId,
+              username: otherUserData?.username || "Unknown",
+            },
+            unseenMessages,
+          };
+        })
+      );
+      setConversations(fetchedConversations);
+    });
 
     return () => unsubscribe();
   }, [currentUser]);
+
+  const getUnseenMessagesCount = async (chatId) => {
+    const messagesRef = collection(firestore, "chats", chatId, "messages");
+    const q = query(messagesRef, where("recipientId", "==", currentUser.uid), where("seen", "==", false));
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  };
 
   const handleLogout = () => {
     auth.signOut();
     navigation.navigate("Login");
   };
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    const filtered = users.filter((user) => {
-      const lowercaseName = user.username.toLowerCase();
-      return lowercaseName.includes(query.toLowerCase());
-    });
-    setFilteredUsers(filtered);
+  const handleSearch = (queryText) => {
+    setSearchQuery(queryText);
+    if (queryText) {
+      const usersRef = collection(firestore, "users");
+      const q = query(
+        usersRef,
+        where("username", ">=", queryText),
+        where("username", "<=", queryText + "\uf8ff")
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetchedUsers = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setFilteredUsers(fetchedUsers);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setFilteredUsers([]);
+    }
   };
 
   const renderItem = ({ item }) => {
-    return (
-      <View style={styles.userItem}>
-        <Text>{item.username}</Text>
-        <Button
-          title="Mesaj Gönder"
-          onPress={() => navigation.navigate("Chat", { userId: item.id })}
-        />
-      </View>
-    );
+    if (searchQuery) {
+      return (
+        <TouchableOpacity style={styles.userItem} onPress={() => navigation.navigate("Chat", { userId: item.uid })}>
+          <Text>{item.username}</Text>
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <TouchableOpacity style={styles.userItem} onPress={() => navigation.navigate("Chat", { userId: item.otherUser.uid })}>
+          <View style={styles.userInfo}>
+            <Text>{item.otherUser.username}</Text>
+            <Text style={styles.lastMessage}>{item.lastMessage.text}</Text>
+          </View>
+          {item.unseenMessages >= 0 && (
+            <View style={styles.unseenMessagesContainer}>
+              <Text style={styles.unseenMessagesText}>{item.unseenMessages}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    }
   };
 
   return (
@@ -73,20 +116,21 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Ara"
+          placeholder="Kullanıcı Ara"
           value={searchQuery}
           onChangeText={handleSearch}
         />
-        <Button title="Ara" onPress={() => handleSearch(searchQuery)} />
       </View>
 
       <FlatList
-        data={searchQuery.length > 0 ? filteredUsers : users}
+        data={searchQuery.length < 0 ? filteredUsers : conversations}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />
 
-      <Button title="Çıkış Yap" onPress={handleLogout} />
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Çıkış Yap</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -94,7 +138,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F8EDEB",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
@@ -106,7 +150,30 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#B5838D",
+  },
+  userInfo: {
+    flex: 1,
+  },
+  lastMessage: {
+    fontStyle: 'italic',
+    color: '#6D597A',
+  },
+  unseenMessagesContainer: {
+    backgroundColor: '#E5989B',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unseenMessagesText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  seen: {
+    color: '#6D597A',
+    fontSize: 12,
   },
   searchContainer: {
     flexDirection: "row",
@@ -115,12 +182,26 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     marginBottom: 10,
-    backgroundColor: "#eee",
+    backgroundColor: "#FFDDD2",
     borderRadius: 10,
   },
   searchInput: {
     flex: 1,
     padding: 10,
+    borderColor: "#B5838D",
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  button: {
+    backgroundColor: '#E5989B',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
 
