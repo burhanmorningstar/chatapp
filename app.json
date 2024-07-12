@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "chatapp2",
-    "slug": "chatapp2",
-    "version": "1.0.1",
+    "name": "chatapp3",
+    "slug": "chatapp3",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -24,11 +24,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "jsEngine": "hermes",
     "extra": {
       "eas": {
-        "projectId": "1d49ad33-cfc8-47d1-b1a5-f3f60c4a36bc"
+        "projectId": "702d1f31-4b97-4c3f-9b87-1def2f99725d"
       }
-    },
-    "jsEngine": "hermes"
+    }
   }
 }

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { auth, firestore } from "../firebase";
 import { collection, query, where, onSnapshot, orderBy, getDoc, getDocs, doc } from "firebase/firestore";
+import { formatDistanceToNow } from 'date-fns';
 
 const HomeScreen = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
@@ -19,7 +20,6 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Daha önce mesajlaştığınız kişileri çekmek için Firestore'da sorgu oluşturun
     const chatsRef = collection(firestore, "chats");
     const q = query(chatsRef, where("users", "array-contains", currentUser.uid), orderBy("lastMessage.timestamp", "desc"));
 
@@ -31,7 +31,6 @@ const HomeScreen = ({ navigation }) => {
           const otherUserDoc = await getDoc(doc(firestore, "users", otherUserId));
           const otherUserData = otherUserDoc.exists() ? otherUserDoc.data() : {};
 
-          // Görülmemiş mesajları hesapla
           const unseenMessages = await getUnseenMessagesCount(docSnapshot.id);
 
           return {
@@ -90,18 +89,34 @@ const HomeScreen = ({ navigation }) => {
   const renderItem = ({ item }) => {
     if (searchQuery) {
       return (
-        <TouchableOpacity style={styles.userItem} onPress={() => navigation.navigate("Chat", { userId: item.uid })}>
-          <Text>{item.username}</Text>
+        <TouchableOpacity style={styles.userItem} onPress={() => navigation.navigate("Chat", { userId: item.id })}>
+          <View style={styles.userAvatar}>
+            <Text style={styles.avatarText}>{item.username.charAt(0)}</Text>
+          </View>
+          <Text style={styles.username}>{item.username}</Text>
         </TouchableOpacity>
       );
     } else {
+      const lastMessageText = item.lastMessage && item.lastMessage.text ? item.lastMessage.text : 'No messages yet';
+      const lastMessageSender = item.lastMessage && item.lastMessage.senderId === currentUser.uid ? 'You: ' : '';
+      const lastMessageTimestamp = item.lastMessage && item.lastMessage.timestamp ? formatDistanceToNow(item.lastMessage.timestamp.toDate(), { addSuffix: true }) : '';
+
       return (
         <TouchableOpacity style={styles.userItem} onPress={() => navigation.navigate("Chat", { userId: item.otherUser.uid })}>
-          <View style={styles.userInfo}>
-            <Text>{item.otherUser.username}</Text>
-            <Text style={styles.lastMessage}>{item.lastMessage.text}</Text>
+          <View style={styles.userAvatar}>
+            <Text style={styles.avatarText}>{item.otherUser.username.charAt(0)}</Text>
           </View>
-          {item.unseenMessages >= 0 && (
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{item.otherUser.username}</Text>
+            <Text style={styles.lastMessage}>{lastMessageSender}{lastMessageText}</Text>
+            <Text style={styles.timestamp}>{lastMessageTimestamp}</Text>
+            {item.lastMessage && item.lastMessage.senderId === currentUser.uid && (
+              <Text style={item.lastMessage.seen ? styles.seen : styles.unseen}>
+                {item.lastMessage.seen ? 'Seen' : 'Unseen'}
+              </Text>
+            )}
+          </View>
+          {item.unseenMessages > 0 && (
             <View style={styles.unseenMessagesContainer}>
               <Text style={styles.unseenMessagesText}>{item.unseenMessages}</Text>
             </View>
@@ -123,9 +138,10 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={searchQuery.length < 0 ? filteredUsers : conversations}
+        data={searchQuery ? filteredUsers : conversations}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={<Text style={styles.emptyMessage}>Henüz mesajınız yok.</Text>}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
@@ -151,29 +167,58 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#B5838D",
+    marginBottom: 5,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E5989B",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  avatarText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   userInfo: {
     flex: 1,
   },
+  username: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   lastMessage: {
-    fontStyle: 'italic',
-    color: '#6D597A',
+    fontStyle: "italic",
+    color: "#6D597A",
+  },
+  timestamp: {
+    fontSize: 12,
+    color: "#6D597A",
+  },
+  seen: {
+    fontSize: 12,
+    color: "green",
+  },
+  unseen: {
+    fontSize: 12,
+    color: "red",
   },
   unseenMessagesContainer: {
-    backgroundColor: '#E5989B',
+    backgroundColor: "#E5989B",
     borderRadius: 15,
     paddingVertical: 5,
     paddingHorizontal: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   unseenMessagesText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-  },
-  seen: {
-    color: '#6D597A',
-    fontSize: 12,
   },
   searchContainer: {
     flexDirection: "row",
@@ -192,15 +237,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
   },
+  emptyMessage: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#6D597A",
+  },
   button: {
-    backgroundColor: '#E5989B',
+    backgroundColor: "#E5989B",
     padding: 10,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
   },
 });

@@ -69,6 +69,7 @@ const ChatScreen = ({ navigation, route }) => {
       };
 
       try {
+        setMessageInput("");
         const chatDocRef = doc(firestore, "chats", chatId);
         const chatDoc = await getDoc(chatDocRef);
 
@@ -87,7 +88,6 @@ const ChatScreen = ({ navigation, route }) => {
 
         // Mesajı ekleyin
         await addDoc(messagesRef, newMessage);
-        setMessageInput("");
         scrollRef.current?.scrollToEnd({ animated: true });
       } catch (error) {
         console.error("Error sending message: ", error);
