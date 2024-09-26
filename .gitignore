@@ -33,5 +33,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
-
 firebase.js
+google-services.json
+gvg-9c596-firebase-adminsdk-ppmoo-7d6a8dcfe3.json
+.gitignore

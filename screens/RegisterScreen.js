@@ -35,7 +35,6 @@ const RegisterScreen = ({ navigation }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: username });
 
-      // Firestore'a kullanıcıyı ekle
       await setDoc(doc(firestore, "users", userCredential.user.uid), {
         email: email,
         username: username,
@@ -101,22 +100,24 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: '#F8EDEB',
+    backgroundColor: '#DDF2F4',
   },
   header: {
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#6D597A',
+    color: '#2B2D42',
+    fontFamily: 'Montserrat-Bold',
   },
   input: {
     height: 40,
-    borderColor: '#B5838D',
+    borderColor: '#8D99AE',
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
     borderRadius: 10,
-    backgroundColor: '#FFDDD2',
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Roboto-Regular',
   },
   termsContainer: {
     flexDirection: 'row',
@@ -131,19 +132,21 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   checked: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2B2D42',
   },
   termsText: {
     flex: 1,
-    color: '#6D597A',
+    color: '#2B2D42',
+    fontFamily: 'Roboto-Regular',
   },
   link: {
-    color: '#007AFF',
+    color: '#8D99AE',
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: 'Roboto-Regular',
   },
   button: {
-    backgroundColor: '#E5989B',
+    backgroundColor: '#2B2D42',
     padding: 10,
     borderRadius: 10,
     alignItems: 'center',
@@ -152,7 +155,10 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
   },
 });
+
+
 
 export default RegisterScreen;

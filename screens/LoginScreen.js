@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-export default function LoginScreen({ navigation }) {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,32 +65,33 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
-}
-
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: '#F8EDEB',
+    backgroundColor: '#DDF2F4',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
-    color: '#6D597A',
+    color: '#2B2D42',
+    fontFamily: 'Montserrat-Bold',
   },
   input: {
     height: 40,
-    borderColor: '#B5838D',
+    borderColor: '#8D99AE',
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
     borderRadius: 10,
-    backgroundColor: '#FFDDD2',
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Roboto-Regular',
   },
   button: {
-    backgroundColor: '#E5989B',
+    backgroundColor: '#2B2D42',
     padding: 10,
     borderRadius: 10,
     alignItems: 'center',
@@ -99,5 +100,10 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
   },
 });
+
+
+
+export default LoginScreen;
